@@ -19,25 +19,27 @@ def read_text(fn):
     return text
 
 class TextMelIDLoader(torch.utils.data.Dataset):
-    
+
     def __init__(self, list_file, mean_std_file, shuffle=True):
         '''
         list_file: 3-column: (path, n_frames, n_phones)
         mean_std_file: tensor loadable into numpy, of shape (2, feat_dims), i.e. [mean_row, std_row]
         '''
-        file_path_list = []
-        with open(list_file) as f:
-            lines = f.readlines()
-            for line in lines:
-                path, n_frame, n_phones = line.strip().split()
-                if int(n_frame) >= 1000:
-                    continue
-                file_path_list.append(path)
+        # file_path_list = []
+        # with open(list_file) as f:
+        #     lines = f.readlines()
+        #     for line in lines:
+        #         path, n_frame, n_phones = line.strip().split()
+        #         path = line
+        #         if int(n_frame) >= 1000:
+        #             continue
+        #         file_path_list.append(path)
+        file_path_list = open(list_file).readlines() # Addition by KnurpsBram: listfile is just a list of paths and doesn't contain n_frames and n_phones (it won't be needed)
 
         if shuffle:
             random.seed(1234)
             random.shuffle(file_path_list)
-        
+
         self.file_path_list = file_path_list
         self.mel_mean_std = np.float32(np.load(mean_std_file))
         self.spc_mean_std = np.float32(np.load(mean_std_file.replace('mel', 'spec')))
@@ -46,7 +48,7 @@ class TextMelIDLoader(torch.utils.data.Dataset):
         # Custom this function to obtain paths and speaker id
         # Deduce filenames
         spec_path = path
-        text_path = path.replace('spec', 'text').replace('npy', 'txt').replace('log-', '')
+        text_path = path.replace('wav48', 'txt').replace('.spec.npy', '.txt')
         mel_path = path.replace('spec', 'mel')
         speaker_id = path.split('/')[-2]
 
@@ -72,7 +74,7 @@ class TextMelIDLoader(torch.utils.data.Dataset):
         text_input = self.get_text(text_path)
         mel = np.load(mel_path)
         spc = np.load(spec_path)
-        # Normalize audio 
+        # Normalize audio
         mel = (mel - self.mel_mean_std[0])/ self.mel_mean_std[1]
         spc = (spc - self.spc_mean_std[0]) / self.spc_mean_std[1]
         # Format for pytorch
@@ -82,12 +84,12 @@ class TextMelIDLoader(torch.utils.data.Dataset):
         speaker_id = torch.LongTensor([sp2id[speaker_id]])
 
         return (text_input, mel, spc, speaker_id)
-        
+
     def get_text(self,text_path):
         '''
         Returns:
 
-        text_input: a list of phoneme IDs corresponding 
+        text_input: a list of phoneme IDs corresponding
         to the transcript of one utterance
         '''
         text = read_text(text_path)
@@ -95,7 +97,7 @@ class TextMelIDLoader(torch.utils.data.Dataset):
 
         for start, end, ph in text:
             text_input.append(ph2id[ph])
-        
+
         return text_input
 
     def __getitem__(self, index):
@@ -143,13 +145,12 @@ class TextMelIDCollate():
             mel = batch[i][1]
             spc = batch[i][2]
 
-            text_input_padded[i,:text.size(0)] = text 
+            text_input_padded[i,:text.size(0)] = text
             mel_padded[i,  :, :mel.size(1)] = mel
             spc_padded[i,  :, :spc.size(1)] = spc
             speaker_id[i] = batch[i][3][0]
-            # make sure the downsampled stop_token_padded have the last eng flag 1. 
+            # make sure the downsampled stop_token_padded have the last eng flag 1.
             stop_token_padded[i, mel.size(1)-self.n_frames_per_step:] = 1
 
         return text_input_padded, mel_padded, spc_padded, speaker_id, \
                     text_lengths, mel_lengths, stop_token_padded
-    

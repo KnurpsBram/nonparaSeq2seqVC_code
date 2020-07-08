@@ -4,45 +4,46 @@ import glob
 import os
 from multiprocessing import Pool, cpu_count
 import sys
-    
+
 def extract_mel_spec(filename):
     '''
     extract and save both log-linear and log-Mel spectrograms.
     saved spec shape [n_frames, 1025]
     saved mel shape [n_frames, 80]
     '''
-    y, sample_rate = librosa.load(filename)
+    y, sample_rate = librosa.load(filename, sr=16000) # Addition by KnurpsBram; The paper mentions windowsize 50ms, for win_length of 800 that requires sr to be 16kHz
 
-    spec = librosa.core.stft(y=y, 
-                             n_fft=2048, 
-                             hop_length=200, 
-                             win_length=800,
-                             window='hann',
-                             center=True,
-                             pad_mode='reflect')
-    spec= librosa.magphase(spec)[0]
-    log_spectrogram = np.log(spec).astype(np.float32)
+    if not os.path.exists(filename.replace(".flac", ".spec").replace(".wav", ".spec")):
+        spec = librosa.core.stft(y=y,
+                                 n_fft=2048,
+                                 hop_length=200,
+                                 win_length=800,
+                                 window='hann',
+                                 center=True,
+                                 pad_mode='reflect')
+        spec= librosa.magphase(spec)[0]
+        log_spectrogram = np.log(spec).astype(np.float32)
 
-    mel_spectrogram = librosa.feature.melspectrogram(S=spec, 
-                                                     sr=sample_rate, 
-                                                     n_mels=80,
-                                                     power=1.0, #actually not used given "S=spec"
-                                                     fmin=0.0,
-                                                     fmax=None,
-                                                     htk=False,
-                                                     norm=1
-                                                     )
-    log_mel_spectrogram = np.log(mel_spectrogram).astype(np.float32)
+        mel_spectrogram = librosa.feature.melspectrogram(S      = spec,
+                                                         sr     = sample_rate,
+                                                         n_mels = 80,
+                                                         power  = 1.0, #actually not used given "S=spec"
+                                                         fmin   = 0.0,
+                                                         fmax   = None,
+                                                         htk    = False,
+                                                         # norm=1
+                                                         )
+        log_mel_spectrogram = np.log(mel_spectrogram).astype(np.float32)
 
-    np.save(file=filename.replace(".wav", ".spec"), arr=log_spectrogram.T)
-    np.save(file=filename.replace(".wav", ".mel"), arr=log_mel_spectrogram.T)
+        np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".spec"), arr=log_spectrogram.T)
+        np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".mel"),  arr=log_mel_spectrogram.T)
 
 
 def extract_phonemes(filename):
     from phonemizer.phonemize import phonemize
     from phonemizer.backend import FestivalBackend
     from phonemizer.separator import Separator
-    
+
     with open(filename) as f:
         text=f.read()
         phones = phonemize(text,
@@ -59,28 +60,31 @@ def extract_phonemes(filename):
 def extract_dir(root, kind):
     if kind =="audio":
         extraction_function=extract_mel_spec
-        ext=".wav"
+        # ext = ".wav"
+        ext_list = [".flac", ".wav"] # Addition by KnurpsBram: allow multiple extensions
     elif kind =="text":
         extraction_function=extract_phonemes
-        ext=".txt"
+        # ext = ".txt"
+        ext_list = [".txt"] # Addition by KnurpsBram: allow multiple extensions
     else:
         print("ERROR: invalid args")
         sys.exit(1)
     if not os.path.isdir(root):
         print("ERROR: invalid args")
         sys.exit(1)
-        
+
     # traverse over all subdirs of the provided dir, and find
     # only files with the proper extension
     abs_paths=[]
     for dirpath, _, filenames in os.walk(root):
         for f in filenames:
             abs_path = os.path.abspath(os.path.join(dirpath, f))
-            if abs_path.endswith(ext):
-                 abs_paths.append(abs_path)
-            
+            for ext in ext_list: # addition by KnurpsBram: allow multiple extensions
+                if abs_path.endswith(ext):
+                     abs_paths.append(abs_path)
+
     pool = Pool(cpu_count())
-    pool.map(extraction_function,abs_paths)
+    pool.map(extraction_function, abs_paths)
 
     #estimate and save mean std statistics in root dir.
     estimate_mean_std(root)
@@ -103,7 +107,7 @@ def estimate_mean_std(root, num=2000):
                 path = os.path.join(dirpath, f)
                 mels.append(np.load(path))
                 counter_mel += 1
-    
+
     specs = np.vstack(specs)
     mels = np.vstack(mels)
 
@@ -117,7 +121,7 @@ def estimate_mean_std(root, num=2000):
     np.save(os.path.join(root,"mel_mean_std.npy"),
         [mel_mean, mel_std])
 
-        
+
 if __name__ == "__main__":
     try:
         path = sys.argv[1]
@@ -126,9 +130,9 @@ if __name__ == "__main__":
         print(
         '''
         Usage:
-        
+
         $ extract_features.py "path" "kind"
-        
+
         path: (str) Root path to data directory, this dir will be traversed
                     and all files matching the appropriate file extension
                     (i.e. ".txt" or ".wav") will undergo feature extraction.
@@ -141,4 +145,3 @@ if __name__ == "__main__":
         sys.exit(1)
 
     extract_dir(path,kind)
-    

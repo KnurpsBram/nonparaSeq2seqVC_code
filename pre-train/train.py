@@ -139,7 +139,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
                 y_pred = model(x, True)
             else:
                 y_pred = model(x, False)
-            
+
             losses, acces, l_main, l_sc = criterion(y_pred, y, False)
             if distributed_run:
                 reduced_val_losses = []
@@ -149,7 +149,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
                     reduced_val_losses.append(reduce_tensor(l.data, n_gpus).item())
                 for a in acces:
                     reduced_val_acces.append(reduce_tensor(a.data, n_gpus).item())
-                
+
                 l_main = reduce_tensor(l_main.data, n_gpus).item()
                 l_sc = reduce_tensor(l_sc.data, n_gpus).item()
             else:
@@ -157,7 +157,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
                 reduced_val_acces = [a.item() for a in acces]
                 l_main = l_main.item()
                 l_sc = l_sc.item()
-            
+
             if i%2 == 0:
                 val_loss_tts += l_main  + l_sc
                 y_tts = y
@@ -170,14 +170,14 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
                 y_vc_pred = y_pred
                 reduced_val_vc_losses += np.array(reduced_val_losses)
                 reduced_val_vc_acces += np.array(reduced_val_acces)
-            
+
         if i % 2 == 0:
             num_tts = i / 2 + 1
             num_vc = i / 2
         else:
-            num_tts = (i + 1) / 2 
+            num_tts = (i + 1) / 2
             num_vc = (i + 1) / 2
-        
+
         val_loss_tts = val_loss_tts / num_tts
         val_loss_vc = val_loss_vc / num_vc
         reduced_val_tts_acces = reduced_val_tts_acces / num_tts
@@ -195,7 +195,7 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
           rank, group_name, hparams):
-    
+
     """Training and validation logging results to tensorboard and stdout
     Params
     ------
@@ -251,17 +251,17 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     # ================ MAIN TRAINNIG LOOP! ===================
     for epoch in range(epoch_offset, hparams.epochs):
         print(("Epoch: {}".format(epoch)))
-        
+
         for i, batch in enumerate(train_loader):
 
             start = time.time()
-            
+
             for param_group in optimizer_main.param_groups:
                 param_group['lr'] = learning_rate
-            
+
             for param_group in optimizer_sc.param_groups:
                 param_group['lr'] = learning_rate
-            
+
 
 
             model.zero_grad()
@@ -291,7 +291,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
 
             for p in parameters_sc:
                 p.requires_grad_(requires_grad=False)
-          
+
             l_main.backward(retain_graph=True)
             grad_norm_main = torch.nn.utils.clip_grad_norm_(
                 parameters_main, hparams.grad_clip_thresh)
@@ -302,8 +302,8 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                 p.requires_grad_(requires_grad=True)
             for p in parameters_main:
                 p.requires_grad_(requires_grad=False)
-            
-         
+
+
             l_sc.backward()
             grad_norm_sc = torch.nn.utils.clip_grad_norm_(
                 parameters_sc, hparams.grad_clip_thresh)
