@@ -35,6 +35,7 @@ def extract_mel_spec(filename):
                                                          )
         log_mel_spectrogram = np.log(mel_spectrogram).astype(np.float32)
 
+        print(filename)
         np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".spec"), arr=log_spectrogram.T)
         np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".mel"),  arr=log_mel_spectrogram.T)
 
