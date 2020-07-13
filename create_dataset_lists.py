@@ -14,6 +14,10 @@ random.shuffle(pathlist)
 a = int(np.round(len(pathlist) * 0.7))
 b = a + int(np.round(len(pathlist) * 0.2))
 
-open('data/VCTK/vctk_train.list', 'w').write("\n".join(pathlist[ :a]))
-open('data/VCTK/vctk_eval.list',  'w').write("\n".join(pathlist[a:b]))
-open('data/VCTK/vctk_test.list',  'w').write("\n".join(pathlist[b: ]))
+# open('data/VCTK/vctk_train.list', 'w').write("\n".join(pathlist[ :a]))
+# open('data/VCTK/vctk_eval.list',  'w').write("\n".join(pathlist[a:b]))
+# open('data/VCTK/vctk_test.list',  'w').write("\n".join(pathlist[b: ]))
+
+open('data/VCTK/vctk_train.list', 'w').write(pathlist[ :a])
+open('data/VCTK/vctk_eval.list',  'w').write(pathlist[a:b])
+open('data/VCTK/vctk_test.list',  'w').write(pathlist[b: ])
