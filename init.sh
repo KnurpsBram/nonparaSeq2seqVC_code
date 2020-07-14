@@ -9,7 +9,7 @@ pip install -r requirements.txt
 sudo apt-get install festival # required for text-to-phoneme
 cd pre-train/reader
 python extract_features.py ../../data/VCTK audio 
-python extract_features.py ../../data/VCTK text
+# python extract_features.py ../../data/VCTK text
 cd ../../
 python create_dataset_lists.py 
 
