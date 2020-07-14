@@ -54,13 +54,21 @@ class Parrot(nn.Module):
         text_input_padded, mel_padded, spc_padded, speaker_id, \
                     text_lengths, mel_lengths, stop_token_padded = batch
         
-        text_input_padded = to_gpu(text_input_padded).long()
-        mel_padded = to_gpu(mel_padded).float()
-        spc_padded = to_gpu(spc_padded).float()
-        speaker_id = to_gpu(speaker_id).long()
-        text_lengths = to_gpu(text_lengths).long()
-        mel_lengths = to_gpu(mel_lengths).long()
-        stop_token_padded = to_gpu(stop_token_padded).float()
+        # text_input_padded = to_gpu(text_input_padded).long()
+        # mel_padded = to_gpu(mel_padded).float()
+        # spc_padded = to_gpu(spc_padded).float()
+        # speaker_id = to_gpu(speaker_id).long()
+        # text_lengths = to_gpu(text_lengths).long()
+        # mel_lengths = to_gpu(mel_lengths).long()
+        # stop_token_padded = to_gpu(stop_token_padded).float()
+
+        text_input_padded = text_input_padded.long()
+        mel_padded = mel_padded.float()
+        spc_padded = spc_padded.float()
+        speaker_id = speaker_id.long()
+        text_lengths = text_lengths.long()
+        mel_lengths = mel_lengths.long()
+        stop_token_padded = stop_token_padded.float()
 
         return ((text_input_padded, mel_padded, text_lengths, mel_lengths),
                 (text_input_padded, mel_padded, spc_padded,  speaker_id, stop_token_padded))

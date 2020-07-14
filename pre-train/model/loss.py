@@ -3,6 +3,9 @@ from torch import nn
 from torch.nn import functional as F
 from .utils import get_mask_from_lengths
 
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
+
 class ParrotLoss(nn.Module):
     def __init__(self, hparams):
         super(ParrotLoss, self).__init__()
@@ -92,7 +95,8 @@ class ParrotLoss(nn.Module):
 
 
         if self.contr_w == 0.:
-            contrast_loss = torch.tensor(0.).cuda()
+            # contrast_loss = torch.tensor(0.).cuda()
+            contrast_loss = torch.tensor(0.).to(device)
         else:
             # contrastive mask #
             contrast_mask1 =  get_mask_from_lengths(text_lengths).unsqueeze(2).expand(-1, -1, mel_hidden.size(1)) # [B, text_len] -> [B, text_len, T/r]
@@ -111,7 +115,8 @@ class ParrotLoss(nn.Module):
             distance_matrix = distance_matrix_xx + distance_matrix_yy - 2 * distance_matrix_xy
             
             TTEXT = distance_matrix.size(1)
-            hard_alignments = torch.eye(TTEXT).cuda()
+            # hard_alignments = torch.eye(TTEXT).cuda()
+            hard_alignments = torch.eye(TTEXT).to(device)
             contrast_loss = hard_alignments * distance_matrix + \
                 (1. - hard_alignments) * torch.max(1. - distance_matrix, torch.zeros_like(distance_matrix))
 

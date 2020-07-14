@@ -107,7 +107,8 @@ def recover_wav(mel, wav_path, ismel=False,
 
 
 text_input, mel, spec, speaker_id = test_set[0]
-reference_mel = mel.cuda().unsqueeze(0) 
+# reference_mel = mel.cuda().unsqueeze(0) 
+reference_mel = mel.to(device).unsqueeze(0) 
 ref_sp = id2sp[speaker_id.item()]
 
 def levenshteinDistance(s1, s2):

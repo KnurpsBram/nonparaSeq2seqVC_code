@@ -30,7 +30,7 @@ def create_hparams(hparams_string=None, verbose=False):
         n_mel_channels=80,
         n_spc_channels=1025,
         n_symbols=41, #
-        n_speakers=99, #
+        n_speakers=109, #99, #
         predict_spectrogram=False,
 
         ################################
@@ -62,7 +62,6 @@ def create_hparams(hparams_string=None, verbose=False):
         speaker_encoder_hidden_dim=256,
         speaker_encoder_dropout=0.2,
         speaker_embedding_dim=128,
-
 
         #Speaker Classifier parameters
         SC_hidden_dim=512,

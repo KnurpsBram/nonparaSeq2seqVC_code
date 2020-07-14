@@ -55,6 +55,7 @@ def extract_phonemes(filename):
                                                word='')
         )
 
+    print(filename)
     with open(filename.replace(".txt", ".phones"), "w") as outfile:
         print(phones, file=outfile)
 

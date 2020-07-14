@@ -16,6 +16,8 @@ from reader import TextMelIDLoader, TextMelIDCollate
 from logger import ParrotLogger
 from hparams import create_hparams
 
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 def batchnorm_to_float(module):
     """Converts batch norm modules to FP32"""
@@ -77,7 +79,8 @@ def prepare_directories_and_logger(output_directory, log_directory, rank):
 
 
 def load_model(hparams):
-    model = Parrot(hparams).cuda()
+    # model = Parrot(hparams).cuda()
+    model = Parrot(hparams).to(device)
     if hparams.distributed_run:
         model = apply_gradient_allreduce(model)
 
@@ -226,7 +229,8 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
     if hparams.distributed_run:
         model = apply_gradient_allreduce(model)
 
-    criterion = ParrotLoss(hparams).cuda()
+    # criterion = ParrotLoss(hparams).cuda()
+    criterion = ParrotLoss(hparams).to(device)
 
     logger = prepare_directories_and_logger(
         output_directory, log_directory, rank)
@@ -262,13 +266,12 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
             for param_group in optimizer_sc.param_groups:
                 param_group['lr'] = learning_rate
 
-
-
             model.zero_grad()
             x, y = model.parse_batch(batch)
 
             if i % 2 == 0:
                 y_pred = model(x, True)
+
                 losses, acces, l_main, l_sc  = criterion(y_pred, y, True)
             else:
                 y_pred = model(x, False)
