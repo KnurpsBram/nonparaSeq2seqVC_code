@@ -3,3 +3,4 @@ events.*
 *.pdf
 *.pyc
 data/*
+runs/*
