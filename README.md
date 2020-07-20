@@ -1,3 +1,8 @@
+# THIS IS A FORKED REPO
+link to the [original repo](https://github.com/jxzhanggg/nonparaSeq2seqVC_code)
+
+This fork includes a nice create_dataset_lists.py script that helps you construct a train-validation-test partition, provided you have the VCTK dataset in the a folder called nonparaSeq2seqVC_code/data/VCTK.
+
 # Non-parallel Seq2seq Voice Conversion
 
 Implementation code of [Non-Parallel Sequence-to-Sequence Voice Conversion with Disentangled Linguistic and Speaker Representations](https://arxiv.org/abs/1906.10508).
@@ -83,13 +88,13 @@ On a single NVIDIA 1080 Ti GPU, with a batch size of 32, pre-training on VCTK ta
 
 If you use this code, please cite:
 ```bibtex
-@article{zhangnonpara2020, 
-author={Jing-Xuan {Zhang} and Zhen-Hua {Ling} and Li-Rong {Dai}}, 
-journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 
-title={Non-Parallel Sequence-to-Sequence Voice Conversion with Disentangled Linguistic and Speaker Representations}, 
-year={2020}, 
-volume={28}, 
-number={1}, 
+@article{zhangnonpara2020,
+author={Jing-Xuan {Zhang} and Zhen-Hua {Ling} and Li-Rong {Dai}},
+journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing},
+title={Non-Parallel Sequence-to-Sequence Voice Conversion with Disentangled Linguistic and Speaker Representations},
+year={2020},
+volume={28},
+number={1},
 pages={540-552}}
 
 ```
