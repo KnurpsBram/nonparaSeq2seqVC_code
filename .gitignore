@@ -4,4 +4,4 @@ events.*
 *.pyc
 data/*
 runs/*
-outdir/*
+*outdir/*
