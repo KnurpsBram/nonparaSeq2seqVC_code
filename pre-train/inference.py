@@ -20,11 +20,13 @@ import scipy.io.wavfile
 hparams = create_hparams()
 
 #generation list
-hlist = '/home/jxzhang/Documents/DataSets/VCTK/list/hold_english.list'
-tlist = '/home/jxzhang/Documents/DataSets/VCTK/list/eval_english.list'
+# hlist = '/home/jxzhang/Documents/DataSets/VCTK/list/hold_english.list'
+# tlist = '/home/jxzhang/Documents/DataSets/VCTK/list/eval_english.list'
+hlist = hparams.validation_list
+tlist = hparams.validation_list # TODO: a proper test-list
 
 # use seen (tlist) or unseen list (hlist)
-test_list = tlist
+test_list = hlist #tlist
 checkpoint_path='outdir/checkpoint_0'
 # TTS or VC task?
 input_text=False
@@ -40,7 +42,7 @@ def plot_data(data, fn, figsize=(12, 4)):
             ax = axes
         else:
             ax = axes[i]
-        g = ax.imshow(data[i], aspect='auto', origin='bottom', 
+        g = ax.imshow(data[i], aspect='auto', origin='lower', #origin='bottom',
                        interpolation='none')
         plt.colorbar(g, ax=ax)
     plt.savefig(fn)
@@ -71,14 +73,14 @@ if not os.path.exists(path_save):
 
 print(path_save)
 
-def recover_wav(mel, wav_path, ismel=False, 
+def recover_wav(mel, wav_path, ismel=False,
         n_fft=2048, win_length=800,hop_length=200):
-    
+
     if ismel:
         mean, std = np.load(hparams.mel_mean_std)
     else:
         mean, std = np.load(hparams.mel_mean_std.replace('mel','spec'))
-    
+
     mean = mean[:,None]
     std = std[:,None]
     mel = 1.2 * mel * std + mean
@@ -107,7 +109,7 @@ def recover_wav(mel, wav_path, ismel=False,
 
 
 text_input, mel, spec, speaker_id = test_set[0]
-reference_mel = mel.cuda().unsqueeze(0) 
+reference_mel = mel.cuda().unsqueeze(0)
 ref_sp = id2sp[speaker_id.item()]
 
 def levenshteinDistance(s1, s2):
@@ -133,7 +135,7 @@ with torch.no_grad():
     for i, batch in enumerate(test_loader):
         if i == NUM:
             break
-        
+
         sample_id = sample_list[i].split('/')[-1][9:17]
         print(('%d index %s, decoding ...'%(i,sample_id)))
 
@@ -153,19 +155,19 @@ with torch.no_grad():
 
         task = 'TTS' if input_text else 'VC'
 
-        recover_wav(post_output, 
-                    os.path.join(path_save, 'Wav_%s_ref_%s_%s.wav'%(sample_id, ref_sp, task)), 
+        recover_wav(post_output,
+                    os.path.join(path_save, 'Wav_%s_ref_%s_%s.wav'%(sample_id, ref_sp, task)),
                     ismel=ISMEL)
-        
+
         post_output_path = os.path.join(path_save, 'Mel_%s_ref_%s_%s.npy'%(sample_id, ref_sp, task))
         np.save(post_output_path, post_output)
-                
-        plot_data([alignments, audio_seq2seq_alignments], 
+
+        plot_data([alignments, audio_seq2seq_alignments],
             os.path.join(path_save, 'Ali_%s_ref_%s_%s.pdf'%(sample_id, ref_sp, task)))
-        
-        plot_data([np.hstack([text_hidden, audio_seq2seq_hidden])], 
+
+        plot_data([np.hstack([text_hidden, audio_seq2seq_hidden])],
             os.path.join(path_save, 'Hid_%s_ref_%s_%s.pdf'%(sample_id, ref_sp, task)))
-         
+
         audio_seq2seq_phids = [id2ph[id] for id in audio_seq2seq_phids[:-1]]
         target_text = y[0].data.cpu().numpy()[0]
         target_text = [id2ph[id] for id in target_text[:]]
@@ -174,7 +176,7 @@ with torch.no_grad():
 
         print(audio_seq2seq_phids)
         print(target_text)
-       
+
         err = levenshteinDistance(audio_seq2seq_phids, target_text)
         print(err, len(target_text))
 
@@ -182,6 +184,3 @@ with torch.no_grad():
         totalphs += len(target_text)
 
 print(float(errs)/float(totalphs))
-
-        
-        
