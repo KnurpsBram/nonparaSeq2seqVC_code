@@ -1,7 +1,10 @@
 import os
 import random
 import torch.nn.functional as F
-from tensorboardX import SummaryWriter
+
+# from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
+
 from plotting_utils import plot_alignment_to_numpy, plot_spectrogram_to_numpy, plot_alignment
 from plotting_utils import plot_gate_outputs_to_numpy
 
@@ -16,7 +19,7 @@ class ParrotLogger(SummaryWriter):
 
     def log_training(self, reduced_loss, reduced_losses, reduced_acces, grad_norm, learning_rate, duration,
                      iteration):
-        
+
         self.add_scalar("training.loss", reduced_loss, iteration)
         self.add_scalar("training.loss.recon", reduced_losses[0], iteration)
         self.add_scalar("training.loss.recon_post", reduced_losses[1], iteration)
@@ -31,11 +34,11 @@ class ParrotLogger(SummaryWriter):
         self.add_scalar("learning.rate", learning_rate, iteration)
         self.add_scalar("duration", duration, iteration)
 
-        
+
         self.add_scalar('training.acc.spenc', reduced_acces[0], iteration)
         self.add_scalar('training.acc.spcla', reduced_acces[1], iteration)
         self.add_scalar('training.acc.texcl', reduced_acces[2], iteration)
-    
+
     def log_validation(self, reduced_loss, reduced_losses, reduced_acces, model, y, y_pred, iteration, task):
 
         self.add_scalar('validation.loss.%s'%task, reduced_loss, iteration)
@@ -51,7 +54,7 @@ class ParrotLogger(SummaryWriter):
         self.add_scalar('validation.acc.%s.spenc'%task, reduced_acces[0], iteration)
         self.add_scalar('validation.acc.%s.spcla'%task, reduced_acces[1], iteration)
         self.add_scalar('validatoin.acc.%s.texcl'%task, reduced_acces[2], iteration)
-        
+
         predicted_mel, post_output, predicted_stop, alignments, \
             text_hidden, mel_hidden,  text_logit_from_mel_hidden, \
             audio_seq2seq_alignments, \
@@ -78,7 +81,7 @@ class ParrotLogger(SummaryWriter):
             "%s.alignment"%task,
             plot_alignment_to_numpy(alignments[idx].T),
             iteration, dataformats='HWC')
-        
+
         # plot more alignments
         plot_alignment(alignments[:4], self.ali_path+'/step-%d-%s.pdf'%(iteration, task))
 
@@ -91,17 +94,17 @@ class ParrotLogger(SummaryWriter):
             "%s.mel_target"%task,
             plot_spectrogram_to_numpy(mel_target[idx].data.cpu().numpy()),
             iteration, dataformats='HWC')
-        
+
         self.add_image(
             "%s.mel_predicted"%task,
             plot_spectrogram_to_numpy(predicted_mel[idx].data.cpu().numpy()),
             iteration, dataformats='HWC')
-        
+
         self.add_image(
             "%s.spc_target"%task,
             plot_spectrogram_to_numpy(spc_target[idx].data.cpu().numpy()),
             iteration, dataformats='HWC')
-        
+
         self.add_image(
             "%s.post_predicted"%task,
             plot_spectrogram_to_numpy(post_output[idx].data.cpu().numpy()),
