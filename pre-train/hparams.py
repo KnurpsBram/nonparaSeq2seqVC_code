@@ -30,7 +30,7 @@ def create_hparams(hparams_string=None, verbose=False):
         n_mel_channels=80,
         n_spc_channels=1025,
         n_symbols=41, #
-        n_speakers=99, #
+        n_speakers=109, # 99
         predict_spectrogram=False,
 
         ################################
@@ -47,14 +47,14 @@ def create_hparams(hparams_string=None, verbose=False):
 
         # Audio Encoder parameters
         spemb_input=False,
-        n_frames_per_step_encoder=2,  
+        n_frames_per_step_encoder=2,
         audio_encoder_hidden_dim=512,
         AE_attention_dim=128,
         AE_attention_location_n_filters=32,
         AE_attention_location_kernel_size=51,
         beam_width=10,
 
-        # hidden activation 
+        # hidden activation
         # relu linear tanh
         hidden_activation='tanh',
 
@@ -76,7 +76,7 @@ def create_hparams(hparams_string=None, verbose=False):
         prenet_dim=[256,256],
         max_decoder_steps=1000,
         stop_threshold=0.5,
-    
+
         # Attention parameters
         attention_rnn_dim=512,
         attention_dim=128,
@@ -99,7 +99,7 @@ def create_hparams(hparams_string=None, verbose=False):
         weight_decay=1e-6,
         grad_clip_thresh=5.0,
         batch_size=32,
-        
+
         contrastive_loss_w=30.0,
         speaker_encoder_loss_w=1.0,
         text_classifier_loss_w=1.0,

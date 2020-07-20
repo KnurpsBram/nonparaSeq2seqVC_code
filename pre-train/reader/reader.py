@@ -5,18 +5,18 @@ import numpy as np
 from .symbols import ph2id, sp2id
 from torch.utils.data import DataLoader
 
-def read_text(fn):
-    '''
-    read phone alignments from file of the format:
-    start end phone
-    '''
-    text = []
-    with open(fn) as f:
-        lines = f.readlines()
-        for line in lines:
-            start, end, phone = line.strip().split()
-            text.append([int(start), int(end), phone])
-    return text
+# def read_text(fn):
+#     '''
+#     read phone alignments from file of the format:
+#     start end phone
+#     '''
+#     text = []
+#     with open(fn) as f:
+#         lines = f.readlines()
+#         for line in lines:
+#             start, end, phone = line.strip().split()
+#             text.append([int(start), int(end), phone])
+#     return text
 
 class TextMelIDLoader(torch.utils.data.Dataset):
 
@@ -34,7 +34,7 @@ class TextMelIDLoader(torch.utils.data.Dataset):
         #         if int(n_frame) >= 1000:
         #             continue
         #         file_path_list.append(path)
-        file_path_list = open(list_file).readlines() # Addition by KnurpsBram: listfile is just a list of paths and doesn't contain n_frames and n_phones (it won't be needed)
+        file_path_list = open(list_file).readlines()[0].split() # Addition by KnurpsBram: listfile is just a list of paths and doesn't contain n_frames and n_phones (it won't be needed)
 
         if shuffle:
             random.seed(1234)
@@ -85,18 +85,19 @@ class TextMelIDLoader(torch.utils.data.Dataset):
 
         return (text_input, mel, spc, speaker_id)
 
-    def get_text(self,text_path):
+    def get_text(self, text_path):
         '''
         Returns:
-
         text_input: a list of phoneme IDs corresponding
         to the transcript of one utterance
         '''
-        text = read_text(text_path)
-        text_input = []
+        # text = read_text(text_path)
+        # text_input = []
 
-        for start, end, ph in text:
-            text_input.append(ph2id[ph])
+        # for start, end, ph in text:
+            # text_input.append(ph2id[ph])
+
+        text_input = [ph2id[ph] for ph in open(text_path.replace('.txt', '.phones'), 'r').read().split()]
 
         return text_input
 

@@ -16,7 +16,6 @@ from reader import TextMelIDLoader, TextMelIDCollate
 from logger import ParrotLogger
 from hparams import create_hparams
 
-
 def batchnorm_to_float(module):
     """Converts batch norm modules to FP32"""
     if isinstance(module, torch.nn.modules.batchnorm._BatchNorm):
@@ -262,8 +261,6 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
             for param_group in optimizer_sc.param_groups:
                 param_group['lr'] = learning_rate
 
-
-
             model.zero_grad()
             x, y = model.parse_batch(batch)
 
@@ -303,11 +300,9 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
             for p in parameters_main:
                 p.requires_grad_(requires_grad=False)
 
-
             l_sc.backward()
             grad_norm_sc = torch.nn.utils.clip_grad_norm_(
                 parameters_sc, hparams.grad_clip_thresh)
-
 
             optimizer_sc.step()
 
@@ -315,7 +310,6 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                 p.requires_grad_(requires_grad=True)
 
             if not math.isnan(redl_main) and rank == 0:
-
                 duration = time.time() - start
                 task = 'TTS' if i%2 == 0 else 'VC'
                 print(("Train {} {} {:.6f} Grad Norm {:.6f} {:.2f}s/it".format(
