@@ -20,6 +20,7 @@ pathlist = [path for path in pathlist if \
 
 random.shuffle(pathlist)
 
+# TODO: create test list by holding out all data of some specific speakers
 a = int(np.round(len(pathlist) * 0.7))
 b = a + int(np.round(len(pathlist) * 0.2))
 
