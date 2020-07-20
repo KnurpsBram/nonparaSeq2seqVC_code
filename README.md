@@ -1,7 +1,24 @@
 # THIS IS A FORKED REPO
 link to the [original repo](https://github.com/jxzhanggg/nonparaSeq2seqVC_code)
 
-This fork includes a nice create_dataset_lists.py script that helps you construct a train-validation-test partition, provided you have the VCTK dataset in the a folder called nonparaSeq2seqVC_code/data/VCTK.
+This fork includes a nice create_dataset_lists.py script that helps you construct a train-validation-test partition, provided you have the VCTK dataset in the folder `nonparaSeq2seqVC_code/data/VCTK`.  
+It's recommended to install pip packages in an isolated conda environment.
+
+- make sure data is present in data/VCTK
+
+LIBROSA BUG:
+If librosa is giving you trouble, change the line `import numba.decorators` to `import numba.core.decorators` in `decorators.py` (the error message will tell you where to find the `decorators.py` file)
+https://github.com/deezer/spleeter/issues/419#issuecomment-643574915
+
+`pip install -r requirements.txt`  
+`cd pre-train/reader`  
+`python extract_features.py ../../data/VCTK audio`  
+`sudo apt-get install festival # required for text-to-phoneme`  
+`python extract_features.py ../../data/VCTK text`  
+`cd ../../`  
+`python create_dataset_lists.py`  
+
+- Ready!
 
 # Non-parallel Seq2seq Voice Conversion
 
