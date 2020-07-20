@@ -10,13 +10,13 @@ LIBROSA BUG:
 If librosa is giving you trouble, change the line `import numba.decorators` to `import numba.core.decorators` in `decorators.py` (the error message will tell you where to find the `decorators.py` file)
 https://github.com/deezer/spleeter/issues/419#issuecomment-643574915
 
-`pip install -r requirements.txt`  
-`cd pre-train/reader`  
-`python extract_features.py ../../data/VCTK audio`  
-`sudo apt-get install festival # required for text-to-phoneme`  
-`python extract_features.py ../../data/VCTK text`  
-`cd ../../`  
-`python create_dataset_lists.py`  
+`$ pip install -r requirements.txt`  
+`$ cd pre-train/reader`  
+`$ python extract_features.py ../../data/VCTK audio`  
+`$ sudo apt-get install festival # required for text-to-phoneme`  
+`$ python extract_features.py ../../data/VCTK text`  
+`$ cd ../../`  
+`$ python create_dataset_lists.py`  
 
 - Ready!
 
