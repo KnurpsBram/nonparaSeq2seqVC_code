@@ -260,7 +260,7 @@ def check_items(model, valset, collate_fn, logger, iteration):
                     audio = mel_to_wav(mel_output)
                     logger.add_audio("CHECK_ITEMS_it"+str(i)+","+str(j)+"_VC_audio", audio, iteration, sample_rate=16000) # torchhub melgan outputs 22050 sr audio
                 except:
-                    print("ERROR: i,",i,",",j,",j)
+                    print("ERROR: i,",i,",j,",j)
 
                 if j > 4:
                     break
