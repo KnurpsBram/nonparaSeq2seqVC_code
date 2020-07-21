@@ -321,11 +321,6 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
             iteration += 1  # next iteration is iteration + 1
             epoch_offset = max(0, int(iteration / len(train_loader)))
 
-    # TEMPORARY
-    check_items(model, valset, collate_fn, logger, iteration)
-    sys.exit()
-    # END TEMPORARY
-
     model.train()
     # ================ MAIN TRAINNIG LOOP! ===================
     for epoch in range(epoch_offset, hparams.epochs):
