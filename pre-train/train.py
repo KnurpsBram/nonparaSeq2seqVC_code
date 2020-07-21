@@ -397,7 +397,7 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                          hparams.batch_size, n_gpus, collate_fn, logger,
                          hparams.distributed_run, rank)
 
-                check_items(model, valset, logger, iteration) # ADDED BY KNURPBRAM
+                check_items(model, valset, collate_fn, logger, iteration) # ADDED BY KNURPBRAM
 
                 if rank == 0:
                     checkpoint_path = os.path.join(
