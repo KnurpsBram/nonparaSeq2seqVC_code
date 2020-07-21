@@ -226,7 +226,6 @@ def check_items(model, valset, collate_fn, logger, iteration):
                                 pin_memory=False, collate_fn=collate_fn)
 
         check_loader1 = copy.deepcopy(check_loader)
-        check_loader2 = copy.deepcopy(check_loader)
 
         for i, batch_a in enumerate(check_loader1):
             x_a, y_a = model.parse_batch(batch_a)
@@ -241,7 +240,10 @@ def check_items(model, valset, collate_fn, logger, iteration):
             audio = mel_to_wav(mel_input)
             logger.add_audio("CHECK_ITEMS_it"+str(i)+"_melgan", audio, iteration, sample_rate=16000) # torchhub melgan outputs 22050 sr audio
 
+            check_loader2 = copy.deepcopy(check_loader)
             for j, batch_b in enumerate(check_loader2):
+
+                print("I",i,"J",j)
 
                 x_b, y_b = model.parse_batch(batch_b)
 
@@ -393,9 +395,9 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                     redl_main+redl_sc, reduced_losses, reduced_acces, grad_norm_main, learning_rate, duration, iteration)
 
             if (iteration % hparams.iters_per_checkpoint == 0):
-                validate(model, criterion, valset, iteration,
-                         hparams.batch_size, n_gpus, collate_fn, logger,
-                         hparams.distributed_run, rank)
+                # validate(model, criterion, valset, iteration,
+                #          hparams.batch_size, n_gpus, collate_fn, logger,
+                #          hparams.distributed_run, rank)
 
                 check_items(model, valset, collate_fn, logger, iteration) # ADDED BY KNURPBRAM
 
