@@ -23,7 +23,7 @@ def extract_mel_spec(filename):
                              pad_mode='reflect')
     spec= librosa.magphase(spec)[0]
     # log_spectrogram = np.log(spec).astype(np.float32)
-    log_spectrogram = np.log(np.clip(spec, 1e-5)).astype(np.float32)
+    log_spectrogram = np.log(np.clip(spec, a_min=1e-5, a_max=None)).astype(np.float32)
 
     mel_spectrogram = librosa.feature.melspectrogram(S      = spec,
                                                      sr     = sample_rate,
@@ -35,7 +35,7 @@ def extract_mel_spec(filename):
                                                      # norm=1
                                                      )
     # log_mel_spectrogram = np.log(mel_spectrogram).astype(np.float32)
-    log_mel_spectrogram = np.log(np.clip(mel_spectrogram, 1e-5)).astype(np.float32)
+    log_mel_spectrogram = np.log(np.clip(mel_spectrogram, a_min=1e-5, a_max=None)).astype(np.float32)
 
     print(filename)
     np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".spec"), arr=log_spectrogram.T)
