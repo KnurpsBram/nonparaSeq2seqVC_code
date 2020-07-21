@@ -247,17 +247,20 @@ def check_items(model, valset, collate_fn, logger, iteration):
 
                 mel_ref   = x_b[1]
 
-                y_pred = model.inference(x_a, False, mel_ref, hparams.beam_width) # False means VC conversion, not TTS
+                try:
+                    y_pred = model.inference(x_a, False, mel_ref, hparams.beam_width) # False means VC conversion, not TTS
 
-                mel_output = y_pred[1]
+                    mel_output = y_pred[1]
 
-                logger.add_image(
-                    "CHECK_ITEMS_it"+str(i)+","+str(j)+"_VC_melspect",
-                    plot_spectrogram_to_numpy(mel_output[0].data.cpu().numpy()),
-                    iteration, dataformats='HWC')
+                    logger.add_image(
+                        "CHECK_ITEMS_it"+str(i)+","+str(j)+"_VC_melspect",
+                        plot_spectrogram_to_numpy(mel_output[0].data.cpu().numpy()),
+                        iteration, dataformats='HWC')
 
-                audio = mel_to_wav(mel_output)
-                logger.add_audio("CHECK_ITEMS_it"+str(i)+","+str(j)+"_VC_audio", audio, iteration, sample_rate=16000) # torchhub melgan outputs 22050 sr audio
+                    audio = mel_to_wav(mel_output)
+                    logger.add_audio("CHECK_ITEMS_it"+str(i)+","+str(j)+"_VC_audio", audio, iteration, sample_rate=16000) # torchhub melgan outputs 22050 sr audio
+                except:
+                    print("ERROR: i,",i,",",j,",j)
 
                 if j > 4:
                     break
@@ -393,9 +396,9 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                     redl_main+redl_sc, reduced_losses, reduced_acces, grad_norm_main, learning_rate, duration, iteration)
 
             if (iteration % hparams.iters_per_checkpoint == 0):
-                validate(model, criterion, valset, iteration,
-                         hparams.batch_size, n_gpus, collate_fn, logger,
-                         hparams.distributed_run, rank)
+                # validate(model, criterion, valset, iteration,
+                #          hparams.batch_size, n_gpus, collate_fn, logger,
+                #          hparams.distributed_run, rank)
 
                 check_items(model, valset, collate_fn, logger, iteration) # ADDED BY KNURPBRAM
 
