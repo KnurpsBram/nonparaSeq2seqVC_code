@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use("Agg")
+# matplotlib.use("Agg")
 import matplotlib.pylab as plt
 import numpy as np
 
@@ -11,7 +11,7 @@ def save_figure_to_numpy(fig):
     return data
 
 def plot_alignment(alignment, fn):
-    # [4, encoder_step, decoder_step] 
+    # [4, encoder_step, decoder_step]
     fig, axes = plt.subplots(2, 2)
     for i in range(2):
         for j in range(2):
@@ -19,7 +19,7 @@ def plot_alignment(alignment, fn):
                 aspect='auto', origin='lower',
                 interpolation='none')
             plt.colorbar(g, ax=axes[i][j])
-    
+
     plt.savefig(fn)
     plt.close()
     return fn

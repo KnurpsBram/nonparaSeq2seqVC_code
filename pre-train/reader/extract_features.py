@@ -13,31 +13,33 @@ def extract_mel_spec(filename):
     '''
     y, sample_rate = librosa.load(filename, sr=16000) # Addition by KnurpsBram; The paper mentions windowsize 50ms, for win_length of 800 that requires sr to be 16kHz
 
-    if not os.path.exists(filename.replace(".flac", ".spec").replace(".wav", ".spec")):
-        spec = librosa.core.stft(y=y,
-                                 n_fft=2048,
-                                 hop_length=200,
-                                 win_length=800,
-                                 window='hann',
-                                 center=True,
-                                 pad_mode='reflect')
-        spec= librosa.magphase(spec)[0]
-        log_spectrogram = np.log(spec).astype(np.float32)
+    # if not os.path.exists(filename.replace(".flac", ".spec").replace(".wav", ".spec")):
+    spec = librosa.core.stft(y=y,
+                             n_fft=2048,
+                             hop_length=256, #200, # Change by KnurpsBram; use the same hyperparameters here that you use for MelGAN
+                             win_length=1024, #800,
+                             window='hann',
+                             center=True,
+                             pad_mode='reflect')
+    spec= librosa.magphase(spec)[0]
+    # log_spectrogram = np.log(spec).astype(np.float32)
+    log_spectrogram = np.log(np.clip(spec, 1e-5)).astype(np.float32)
 
-        mel_spectrogram = librosa.feature.melspectrogram(S      = spec,
-                                                         sr     = sample_rate,
-                                                         n_mels = 80,
-                                                         power  = 1.0, #actually not used given "S=spec"
-                                                         fmin   = 0.0,
-                                                         fmax   = None,
-                                                         htk    = False,
-                                                         # norm=1
-                                                         )
-        log_mel_spectrogram = np.log(mel_spectrogram).astype(np.float32)
+    mel_spectrogram = librosa.feature.melspectrogram(S      = spec,
+                                                     sr     = sample_rate,
+                                                     n_mels = 80,
+                                                     power  = 1.0, #actually not used given "S=spec"
+                                                     fmin   = 0.0,
+                                                     fmax   = None,
+                                                     htk    = False,
+                                                     # norm=1
+                                                     )
+    # log_mel_spectrogram = np.log(mel_spectrogram).astype(np.float32)
+    log_mel_spectrogram = np.log(np.clip(mel_spectrogram, 1e-5)).astype(np.float32)
 
-        print(filename)
-        np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".spec"), arr=log_spectrogram.T)
-        np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".mel"),  arr=log_mel_spectrogram.T)
+    print(filename)
+    np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".spec"), arr=log_spectrogram.T)
+    np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".mel"),  arr=log_mel_spectrogram.T)
 
 
 def extract_phonemes(filename):

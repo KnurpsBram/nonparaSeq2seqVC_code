@@ -5,3 +5,4 @@ events.*
 data/*
 runs/*
 *outdir/*
+*outdir_COPY/*

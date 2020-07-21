@@ -190,7 +190,82 @@ def validate(model, criterion, valset, iteration, batch_size, n_gpus,
         logger.log_validation(val_loss_tts, reduced_val_tts_losses, reduced_val_tts_acces, model, y_tts, y_tts_pred, iteration, 'tts')
         logger.log_validation(val_loss_vc, reduced_val_vc_losses, reduced_val_vc_acces, model, y_vc, y_vc_pred, iteration, 'vc')
 
+# ADDED BY KNURPSBRAM
+def check_items(model, valset, collate_fn, logger, iteration):
 
+    import copy
+    from plotting_utils import plot_spectrogram_to_numpy
+
+    def mel_to_wav(mel_input):
+
+        # TEMPORARY: melgan vocoder
+        # melgan_vocoder = torch.hub.load('seungwonpark/melgan', 'melgan').to(config["device"])
+        # melgan_vocoder.eval()
+        from melgan.model.generator import Generator
+        ckpt = torch.load('../runs/melgan_TEMP/librispeech_41cec78_0525.pt')
+        melgan_vocoder = Generator(80).cuda()
+        melgan_vocoder.load_state_dict(ckpt['model_g'])
+        melgan_vocoder.eval()
+        # END TEMPORARY
+
+        mean, std = np.load(hparams.mel_mean_std)
+        mean = torch.FloatTensor(mean)[:,None].cuda()
+        std = torch.FloatTensor(std)[:,None].cuda()
+        mel_input = 1.2 * mel_input * std + mean
+        mel_input = torch.log(torch.clamp(torch.exp(mel_input), 1e-5))
+
+        audio = melgan_vocoder.inference(mel_input).float() / 32768.0
+
+        return audio.data.cpu().numpy()
+
+    model.eval()
+    with torch.no_grad():
+        check_loader = DataLoader(valset, num_workers=1,
+                                shuffle=False, batch_size=1,
+                                drop_last=True,
+                                pin_memory=False, collate_fn=collate_fn)
+
+        check_loader1 = copy.deepcopy(check_loader)
+        check_loader2 = copy.deepcopy(check_loader)
+
+        for i, batch_a in enumerate(check_loader1):
+            x_a, y_a = model.parse_batch(batch_a)
+
+            mel_input = x_a[1]
+
+            logger.add_image(
+                "CHECK_ITEMS_it"+str(i)+"_orig_melspect",
+                plot_spectrogram_to_numpy(mel_input[0].data.cpu().numpy()),
+                iteration, dataformats='HWC')
+
+            audio = mel_to_wav(mel_input)
+            logger.add_audio("CHECK_ITEMS_it"+str(i)+"_melgan", audio, iteration, sample_rate=16000) # torchhub melgan outputs 22050 sr audio
+
+            for j, batch_b in enumerate(check_loader2):
+
+                x_b, y_b = model.parse_batch(batch_b)
+
+                mel_ref   = x_b[1]
+
+                y_pred = model.inference(x_a, False, mel_ref, hparams.beam_width) # False means VC conversion, not TTS
+
+                mel_output = y_pred[1]
+
+                logger.add_image(
+                    "CHECK_ITEMS_it"+str(i)+","+str(j)+"_VC_melspect",
+                    plot_spectrogram_to_numpy(mel_output[0].data.cpu().numpy()),
+                    iteration, dataformats='HWC')
+
+                audio = mel_to_wav(mel_output)
+                logger.add_audio("CHECK_ITEMS_it"+str(i)+","+str(j)+"_VC_audio", audio, iteration, sample_rate=16000) # torchhub melgan outputs 22050 sr audio
+
+                if j > 4:
+                    break
+            if i > 4:
+                break
+
+    model.train()
+# END ADDED BY KNURPSBRAM
 
 def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
           rank, group_name, hparams):
@@ -245,6 +320,11 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                 learning_rate = _learning_rate
             iteration += 1  # next iteration is iteration + 1
             epoch_offset = max(0, int(iteration / len(train_loader)))
+
+    # TEMPORARY
+    check_items(model, valset, collate_fn, logger, iteration)
+    sys.exit()
+    # END TEMPORARY
 
     model.train()
     # ================ MAIN TRAINNIG LOOP! ===================
@@ -321,6 +401,9 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                 validate(model, criterion, valset, iteration,
                          hparams.batch_size, n_gpus, collate_fn, logger,
                          hparams.distributed_run, rank)
+
+                check_items(model, valset, logger, iteration) # ADDED BY KNURPBRAM
+
                 if rank == 0:
                     checkpoint_path = os.path.join(
                         output_directory, "checkpoint_{}".format(iteration))

@@ -30,7 +30,7 @@ def create_hparams(hparams_string=None, verbose=False):
         n_mel_channels=80,
         n_spc_channels=1025,
         n_symbols=41, #
-        n_speakers=109, # 99
+        n_speakers=99, #
         predict_spectrogram=False,
 
         ################################

@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use("Agg")
+# matplotlib.use("Agg")
 import matplotlib.pylab as plt
 
 
@@ -23,11 +23,11 @@ hparams = create_hparams()
 # hlist = '/home/jxzhang/Documents/DataSets/VCTK/list/hold_english.list'
 # tlist = '/home/jxzhang/Documents/DataSets/VCTK/list/eval_english.list'
 hlist = hparams.validation_list
-tlist = hparams.validation_list # TODO: a proper test-list
+tlist = hparams.test_list
 
 # use seen (tlist) or unseen list (hlist)
-test_list = hlist #tlist
-checkpoint_path='outdir/checkpoint_0'
+test_list = tlist
+checkpoint_path='outdir/checkpoint_55000'
 # TTS or VC task?
 input_text=False
 # number of utterances for generation
@@ -86,6 +86,8 @@ def recover_wav(mel, wav_path, ismel=False,
     mel = 1.2 * mel * std + mean
     mel = np.exp(mel)
 
+    # TODO: recover wav by MelGAN instead of GriffinLim
+
     if ismel:
         filters = librosa.filters.mel(sr=16000, n_fft=2048, n_mels=80)
         inv_filters = np.linalg.pinv(filters)
@@ -139,6 +141,10 @@ with torch.no_grad():
         sample_id = sample_list[i].split('/')[-1][9:17]
         print(('%d index %s, decoding ...'%(i,sample_id)))
 
+        print("####################"*5)
+        print(sample_id)
+        print("####################"*5)
+
         x, y = model.parse_batch(batch)
         predicted_mel, post_output, predicted_stop, alignments, \
             text_hidden, audio_seq2seq_hidden, audio_seq2seq_phids, audio_seq2seq_alignments, \
@@ -156,17 +162,21 @@ with torch.no_grad():
         task = 'TTS' if input_text else 'VC'
 
         recover_wav(post_output,
-                    os.path.join(path_save, 'Wav_%s_ref_%s_%s.wav'%(sample_id, ref_sp, task)),
+                    # os.path.join(path_save, 'Wav_%s_ref_%s_%s.wav'%(sample_id, ref_sp, task)),
+                    os.path.join(path_save, 'Wav_%s_ref_%s_%s.wav'%(i, ref_sp, task)),
                     ismel=ISMEL)
 
-        post_output_path = os.path.join(path_save, 'Mel_%s_ref_%s_%s.npy'%(sample_id, ref_sp, task))
+        # post_output_path = os.path.join(path_save, 'Mel_%s_ref_%s_%s.npy'%(sample_id, ref_sp, task))
+        post_output_path = os.path.join(path_save, 'Mel_%s_ref_%s_%s.npy'%(i, ref_sp, task))
         np.save(post_output_path, post_output)
 
         plot_data([alignments, audio_seq2seq_alignments],
-            os.path.join(path_save, 'Ali_%s_ref_%s_%s.pdf'%(sample_id, ref_sp, task)))
+            # os.path.join(path_save, 'Ali_%s_ref_%s_%s.pdf'%(sample_id, ref_sp, task)))
+            os.path.join(path_save, 'Ali_%s_ref_%s_%s.pdf'%(i, ref_sp, task)))
 
         plot_data([np.hstack([text_hidden, audio_seq2seq_hidden])],
-            os.path.join(path_save, 'Hid_%s_ref_%s_%s.pdf'%(sample_id, ref_sp, task)))
+            # os.path.join(path_save, 'Hid_%s_ref_%s_%s.pdf'%(sample_id, ref_sp, task)))
+            os.path.join(path_save, 'Hid_%s_ref_%s_%s.pdf'%(i, ref_sp, task)))
 
         audio_seq2seq_phids = [id2ph[id] for id in audio_seq2seq_phids[:-1]]
         target_text = y[0].data.cpu().numpy()[0]
