@@ -65,9 +65,9 @@ class ParrotLoss(nn.Module):
         predicted_mel, post_output, predicted_stop, alignments,\
             text_hidden, mel_hidden, text_logit_from_mel_hidden, \
             audio_seq2seq_alignments, \
-            # speaker_logit_from_mel,  # <-- REMOVED BY KNURPSBRAM
             speaker_logit_from_mel_hidden, \
              text_lengths, mel_lengths = model_outputs
+             # speaker_logit_from_mel,  # <-- REMOVED BY KNURPSBRAM
 
         text_target, mel_target, spc_target, speaker_target, stop_target  = self.parse_targets(targets, text_lengths)
 
@@ -166,7 +166,7 @@ class ParrotLoss(nn.Module):
         combined_loss1 = recon_loss + recon_loss_post + stop_loss + self.contr_w * contrast_loss + \
             self.texcl_w * text_classification_loss + \
             self.spadv_w * speaker_adversial_loss
-            # self.spenc_w * speaker_encoder_loss +  
+            # self.spenc_w * speaker_encoder_loss +
 
         combined_loss2 = self.spcla_w * speaker_classification_loss
 

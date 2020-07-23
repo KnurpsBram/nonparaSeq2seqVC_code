@@ -6,10 +6,10 @@
 
 CUDA_VISIBLE_DEVICES=0 python train.py \
 -l logdir \
--o ../runs/outdir_21jul2020 \
+-o ../runs/outdir_embeds_by_resemblyzer_23jul2020 \
 --n_gpus=1 \
 --hparams=speaker_adversial_loss_w=20.,\
 ce_loss=False,\
 speaker_classifier_loss_w=0.1,\
 contrastive_loss_w=30.,\
-batch_size=2
+batch_size=32
