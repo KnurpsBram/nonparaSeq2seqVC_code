@@ -247,7 +247,9 @@ def check_items(model, valset, collate_fn, logger, iteration):
 
                 x_b, y_b = model.parse_batch(batch_b)
 
-                mel_ref   = x_b[1]
+                mel_ref = x_b[1] # THIS DOESN"T GET USED
+                x_a = list(x_a) # tuples don't allow assingment
+                x_a[4]  = x_b[4] # give the speaker embed of the person you want to hear (x_b) to the input of the model (x_a), mel_ref doesn't get used
 
                 try:
                     y_pred = model.inference(x_a, False, mel_ref, hparams.beam_width) # False means VC conversion, not TTS
@@ -398,9 +400,9 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                     redl_main+redl_sc, reduced_losses, reduced_acces, grad_norm_main, learning_rate, duration, iteration)
 
             if (iteration % hparams.iters_per_checkpoint == 0):
-                validate(model, criterion, valset, iteration,
-                         hparams.batch_size, n_gpus, collate_fn, logger,
-                         hparams.distributed_run, rank)
+                # validate(model, criterion, valset, iteration,
+                #          hparams.batch_size, n_gpus, collate_fn, logger,
+                #          hparams.distributed_run, rank)
 
                 check_items(model, valset, collate_fn, logger, iteration) # ADDED BY KNURPBRAM
 

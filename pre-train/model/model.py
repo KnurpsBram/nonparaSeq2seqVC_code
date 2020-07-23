@@ -148,9 +148,11 @@ class Parrot(nn.Module):
         decode the audio sequence from input
         inputs x
         input_text True or False
-        mel_reference [1, mel_bins, T]
+        mel_reference [1, mel_bins, T]  # SINCE KNURPSBRAM, THIS DOESNT GET USED
         '''
-        text_input_padded, mel_padded, text_lengths, mel_lengths = inputs
+        # text_input_padded, mel_padded, text_lengths, mel_lengths = inputs
+        text_input_padded, mel_padded, text_lengths, mel_lengths, speaker_embedding = inputs
+
         text_input_embedded = self.embedding(text_input_padded.long()).transpose(1, 2)
         text_hidden = self.text_encoder.inference(text_input_embedded)
 
@@ -158,8 +160,8 @@ class Parrot(nn.Module):
         start_embedding = Variable(text_input_padded.data.new(B,).fill_(self.sos))
         start_embedding = self.embedding(start_embedding) # [1, embedding_dim]
 
-        #-> [B, text_len+1, hidden_dim] [B, text_len+1, n_symbols] [B, text_len+1, T/r]
-        speaker_id, speaker_embedding = self.speaker_encoder.inference(mel_reference)
+        # #-> [B, text_len+1, hidden_dim] [B, text_len+1, n_symbols] [B, text_len+1, T/r]
+        # speaker_id, speaker_embedding = self.speaker_encoder.inference(mel_reference)
 
         if self.spemb_input:
             T = mel_padded.size(2)
@@ -187,5 +189,5 @@ class Parrot(nn.Module):
         post_output = self.postnet(predicted_mel)
 
         return (predicted_mel, post_output, predicted_stop, alignments,
-            text_hidden, audio_seq2seq_hidden, audio_seq2seq_phids, audio_seq2seq_alignments,
-            speaker_id)
+            text_hidden, audio_seq2seq_hidden, audio_seq2seq_phids, audio_seq2seq_alignments)#,
+            #speaker_id)
