@@ -12,7 +12,7 @@ class Parrot(nn.Module):
         super(Parrot, self).__init__()
 
         #print hparams
-        # plus <sos> 
+        # plus <sos>
         self.embedding = nn.Embedding(
             hparams.n_symbols + 1, hparams.symbols_embedding_dim)
         std = sqrt(2.0 / (hparams.n_symbols + hparams.symbols_embedding_dim))
@@ -28,12 +28,12 @@ class Parrot(nn.Module):
 
         self.merge_net = MergeNet(hparams)
 
-        self.speaker_encoder = SpeakerEncoder(hparams)
+        self.speaker_encoder = SpeakerEncoder(hparams)        
 
         self.speaker_classifier = SpeakerClassifier(hparams)
 
         self.decoder = Decoder(hparams)
-        
+
         self.postnet = PostNet(hparams)
 
         self.spemb_input = hparams.spemb_input
@@ -53,7 +53,7 @@ class Parrot(nn.Module):
     def parse_batch(self, batch):
         text_input_padded, mel_padded, spc_padded, speaker_id, \
                     text_lengths, mel_lengths, stop_token_padded = batch
-        
+
         text_input_padded = to_gpu(text_input_padded).long()
         mel_padded = to_gpu(mel_padded).float()
         spc_padded = to_gpu(spc_padded).float()
@@ -94,28 +94,28 @@ class Parrot(nn.Module):
         start_embedding = Variable(text_input_padded.data.new(B,).fill_(self.sos))
         start_embedding = self.embedding(start_embedding)
 
-        # -> [B, n_speakers], [B, speaker_embedding_dim] 
-        speaker_logit_from_mel, speaker_embedding = self.speaker_encoder(mel_padded, mel_lengths) 
+        # -> [B, n_speakers], [B, speaker_embedding_dim]
+        speaker_logit_from_mel, speaker_embedding = self.speaker_encoder(mel_padded, mel_lengths)
 
         if self.spemb_input:
             T = mel_padded.size(2)
-            audio_input = torch.cat([mel_padded, 
+            audio_input = torch.cat([mel_padded,
                 speaker_embedding.detach().unsqueeze(2).expand(-1, -1, T)], 1)
         else:
             audio_input = mel_padded
-        
+
         audio_seq2seq_hidden, audio_seq2seq_logit, audio_seq2seq_alignments = self.audio_seq2seq(
-                audio_input, mel_lengths, text_input_embedded, start_embedding) 
+                audio_input, mel_lengths, text_input_embedded, start_embedding)
         audio_seq2seq_hidden= audio_seq2seq_hidden[:,:-1, :] # -> [B, text_len, hidden_dim]
-        
-        
+
+
         speaker_logit_from_mel_hidden = self.speaker_classifier(audio_seq2seq_hidden) # -> [B, text_len, n_speakers]
 
         if input_text:
             hidden = self.merge_net(text_hidden, text_lengths)
         else:
             hidden = self.merge_net(audio_seq2seq_hidden, text_lengths)
-        
+
         L = hidden.size(1)
         hidden = torch.cat([hidden, speaker_embedding.detach().unsqueeze(1).expand(-1, L, -1)], -1)
 
@@ -124,13 +124,13 @@ class Parrot(nn.Module):
         post_output = self.postnet(predicted_mel)
 
         outputs = [predicted_mel, post_output, predicted_stop, alignments,
-                  text_hidden, audio_seq2seq_hidden, audio_seq2seq_logit, audio_seq2seq_alignments, 
+                  text_hidden, audio_seq2seq_hidden, audio_seq2seq_logit, audio_seq2seq_alignments,
                   speaker_logit_from_mel, speaker_logit_from_mel_hidden,
                   text_lengths, mel_lengths]
 
         return outputs
 
-    
+
     def inference(self, inputs, input_text, mel_reference, beam_width):
         '''
         decode the audio sequence from input
@@ -151,16 +151,16 @@ class Parrot(nn.Module):
 
         if self.spemb_input:
             T = mel_padded.size(2)
-            audio_input = torch.cat([mel_padded, 
+            audio_input = torch.cat([mel_padded,
                 speaker_embedding.detach().unsqueeze(2).expand(-1, -1, T)], 1)
         else:
             audio_input = mel_padded
-        
+
         audio_seq2seq_hidden, audio_seq2seq_phids, audio_seq2seq_alignments = self.audio_seq2seq.inference_beam(
-                audio_input, start_embedding, self.embedding, beam_width=beam_width) 
+                audio_input, start_embedding, self.embedding, beam_width=beam_width)
         audio_seq2seq_hidden= audio_seq2seq_hidden[:,:-1, :] # -> [B, text_len, hidden_dim]
 
-        # -> [B, n_speakers], [B, speaker_embedding_dim] 
+        # -> [B, n_speakers], [B, speaker_embedding_dim]
 
         if input_text:
             hidden = self.merge_net.inference(text_hidden)
@@ -169,7 +169,7 @@ class Parrot(nn.Module):
 
         L = hidden.size(1)
         hidden = torch.cat([hidden, speaker_embedding.detach().unsqueeze(1).expand(-1, L, -1)], -1)
-          
+
         predicted_mel, predicted_stop, alignments = self.decoder.inference(hidden)
 
         post_output = self.postnet(predicted_mel)
@@ -177,5 +177,3 @@ class Parrot(nn.Module):
         return (predicted_mel, post_output, predicted_stop, alignments,
             text_hidden, audio_seq2seq_hidden, audio_seq2seq_phids, audio_seq2seq_alignments,
             speaker_id)
-
-

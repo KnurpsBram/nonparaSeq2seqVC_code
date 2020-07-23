@@ -26,8 +26,8 @@ hlist = hparams.validation_list
 tlist = hparams.test_list
 
 # use seen (tlist) or unseen list (hlist)
-test_list = tlist
-checkpoint_path='outdir/checkpoint_55000'
+test_list = hlist
+checkpoint_path='../runs/outdir_21jul2020/checkpoint_122000'
 # TTS or VC task?
 input_text=False
 # number of utterances for generation
