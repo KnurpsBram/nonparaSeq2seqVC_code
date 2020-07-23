@@ -16,3 +16,8 @@ ph2id = {ph:i for i, ph in enumerate(phone_list)}
 id2ph = {i:ph for i, ph in enumerate(phone_list)}
 sp2id = {sp:i for i, sp in enumerate(seen_speakers)}
 id2sp = {i:sp for i, sp in enumerate(seen_speakers)}
+
+# ADDED BY KNURPSBRAM
+import torch
+embed_dict = torch.load('../data/VCTK/vctk_resemblyzer_embeds.pkl')
+spkr_id_to_spkr_embed = {sp2id[sp] : embed_dict["vctk_spkr_"+sp] for sp in seen_speakers}

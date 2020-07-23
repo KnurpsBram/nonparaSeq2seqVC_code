@@ -12,4 +12,4 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
 ce_loss=False,\
 speaker_classifier_loss_w=0.1,\
 contrastive_loss_w=30.,\
-batch_size=32
+batch_size=2

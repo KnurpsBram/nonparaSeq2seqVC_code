@@ -62,8 +62,7 @@ def create_hparams(hparams_string=None, verbose=False):
         #Speaker Encoder parameters
         speaker_encoder_hidden_dim=256,
         speaker_encoder_dropout=0.2,
-        speaker_embedding_dim=128,
-
+        speaker_embedding_dim=256, #128, SET TO 256 TO MATCH RESEMBLYZER
 
         #Speaker Classifier parameters
         SC_hidden_dim=512,

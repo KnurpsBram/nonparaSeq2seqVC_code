@@ -396,9 +396,9 @@ def train(output_directory, log_directory, checkpoint_path, warm_start, n_gpus,
                     redl_main+redl_sc, reduced_losses, reduced_acces, grad_norm_main, learning_rate, duration, iteration)
 
             if (iteration % hparams.iters_per_checkpoint == 0):
-                validate(model, criterion, valset, iteration,
-                         hparams.batch_size, n_gpus, collate_fn, logger,
-                         hparams.distributed_run, rank)
+                # validate(model, criterion, valset, iteration,
+                #          hparams.batch_size, n_gpus, collate_fn, logger,
+                #          hparams.distributed_run, rank)
 
                 check_items(model, valset, collate_fn, logger, iteration) # ADDED BY KNURPBRAM
 

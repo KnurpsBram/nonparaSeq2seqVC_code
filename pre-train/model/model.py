@@ -6,6 +6,7 @@ from .utils import to_gpu
 from .decoder import Decoder
 from .layers import SpeakerClassifier, SpeakerEncoder, AudioSeq2seq, TextEncoder,  PostNet, MergeNet
 
+from reader.symbols import spkr_id_to_spkr_embed # ADDED BY KNURPSBRAM
 
 class Parrot(nn.Module):
     def __init__(self, hparams):
@@ -28,7 +29,9 @@ class Parrot(nn.Module):
 
         self.merge_net = MergeNet(hparams)
 
-        self.speaker_encoder = SpeakerEncoder(hparams)        
+        # change by KnurpsBram: use a pretrained resemblyzer embedder
+        # self.speaker_encoder = SpeakerEncoder(hparams)
+        self.spkr_id_to_spkr_embed = spkr_id_to_spkr_embed
 
         self.speaker_classifier = SpeakerClassifier(hparams)
 
@@ -43,7 +46,7 @@ class Parrot(nn.Module):
         params_group1 = [p for p in self.embedding.parameters()]
         params_group1.extend([p for p in self.text_encoder.parameters()])
         params_group1.extend([p for p in self.audio_seq2seq.parameters()])
-        params_group1.extend([p for p in self.speaker_encoder.parameters()])
+        # params_group1.extend([p for p in self.speaker_encoder.parameters()])
         params_group1.extend([p for p in self.merge_net.parameters()])
         params_group1.extend([p for p in self.decoder.parameters()])
         params_group1.extend([p for p in self.postnet.parameters()])
@@ -62,8 +65,14 @@ class Parrot(nn.Module):
         mel_lengths = to_gpu(mel_lengths).long()
         stop_token_padded = to_gpu(stop_token_padded).float()
 
-        return ((text_input_padded, mel_padded, text_lengths, mel_lengths),
-                (text_input_padded, mel_padded, spc_padded,  speaker_id, stop_token_padded))
+        # ADDED BY KNURPSBRAM
+        speaker_embedding = torch.cat([self.spkr_id_to_spkr_embed[id][None, :] for id in speaker_id.data.cpu().numpy()], dim=0)
+        speaker_embedding = to_gpu(speaker_embedding).float()
+
+        # return ((text_input_padded, mel_padded, text_lengths, mel_lengths),
+        #         (text_input_padded, mel_padded, spc_padded,  speaker_id, stop_token_padded))
+        return ((text_input_padded, mel_padded, text_lengths, mel_lengths, speaker_embedding),
+                  (text_input_padded, mel_padded, spc_padded,  speaker_id, stop_token_padded))
 
 
     def forward(self, inputs, input_text):
@@ -72,6 +81,7 @@ class Parrot(nn.Module):
         mel_padded [batch_size, mel_bins, max_mel_len]
         text_lengths [batch_size]
         mel_lengths [batch_size]
+        speaker_embedding [batch_size, n_dim_spkr_embed] # <-- ADDED BY KNURPSBRAM (get it outside through resemblyzer)
 
         #
         predicted_mel [batch_size, mel_bins, T]
@@ -79,13 +89,14 @@ class Parrot(nn.Module):
         alignment input_text==True [batch_size, T/r, max_text_len] or input_text==False [batch_size, T/r, T/r]
         text_hidden [B, max_text_len, hidden_dim]
         mel_hidden [B, T/r, hidden_dim]
-        spearker_logit_from_mel [B, n_speakers]
+        spearker_logit_from_mel [B, n_speakers] # <-- REMOVED BY KNURPSBRAM
         speaker_logit_from_mel_hidden [B, T/r, n_speakers]
         text_logit_from_mel_hidden [B, T/r, n_symbols]
 
         '''
 
-        text_input_padded, mel_padded, text_lengths, mel_lengths = inputs
+        # text_input_padded, mel_padded, text_lengths, mel_lengths = inputs
+        text_input_padded, mel_padded, text_lengths, mel_lengths, speaker_embedding = inputs
 
         text_input_embedded = self.embedding(text_input_padded.long()).transpose(1, 2) # -> [B, text_embedding_dim, max_text_len]
         text_hidden = self.text_encoder(text_input_embedded, text_lengths) # -> [B, max_text_len, hidden_dim]
@@ -95,7 +106,7 @@ class Parrot(nn.Module):
         start_embedding = self.embedding(start_embedding)
 
         # -> [B, n_speakers], [B, speaker_embedding_dim]
-        speaker_logit_from_mel, speaker_embedding = self.speaker_encoder(mel_padded, mel_lengths)
+        # speaker_logit_from_mel, speaker_embedding = self.speaker_encoder(mel_padded, mel_lengths)
 
         if self.spemb_input:
             T = mel_padded.size(2)
@@ -125,7 +136,8 @@ class Parrot(nn.Module):
 
         outputs = [predicted_mel, post_output, predicted_stop, alignments,
                   text_hidden, audio_seq2seq_hidden, audio_seq2seq_logit, audio_seq2seq_alignments,
-                  speaker_logit_from_mel, speaker_logit_from_mel_hidden,
+                  # speaker_logit_from_mel, <-- REMOVED BY KNURPSBRAM
+                  speaker_logit_from_mel_hidden,
                   text_lengths, mel_lengths]
 
         return outputs
