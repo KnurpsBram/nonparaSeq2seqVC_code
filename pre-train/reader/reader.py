@@ -83,7 +83,8 @@ class TextMelIDLoader(torch.utils.data.Dataset):
         spc = torch.from_numpy(np.transpose(spc))
         speaker_id = torch.LongTensor([sp2id[speaker_id]])
 
-        return (text_input, mel, spc, speaker_id)
+        # return (text_input, mel, spc, speaker_id)
+        return (text_input, mel, spc, speaker_id, path.replace('.spec.npy', '.flac')) # added by knurpsbram
 
     def get_text(self, text_path):
         '''
@@ -116,6 +117,7 @@ class TextMelIDCollate():
     def __call__(self, batch):
         '''
         batch is list of (text_input, mel, spc, speaker_id)
+        batch is list of (text_input, mel, spc, speaker_id, path) <-- ADDED BY KNURPSBRAM
         '''
         text_lengths = torch.IntTensor([len(x[0]) for x in batch])
         mel_lengths = torch.IntTensor([x[1].size(1) for x in batch])
@@ -153,5 +155,11 @@ class TextMelIDCollate():
             # make sure the downsampled stop_token_padded have the last eng flag 1.
             stop_token_padded[i, mel.size(1)-self.n_frames_per_step:] = 1
 
+        # ADDED BY KNURPSBRAM
+        audio_paths = [x[4] for x in batch]
+        # END ADDED BY KNURPSBRAM
+
         return text_input_padded, mel_padded, spc_padded, speaker_id, \
-                    text_lengths, mel_lengths, stop_token_padded
+                    text_lengths, mel_lengths, stop_token_padded, \
+                    audio_paths # <-- ADDED BY KNURPSBRAM
+                    # speaker_embedding # <-- ADDED BY KNURPSBRAM

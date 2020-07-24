@@ -6,8 +6,7 @@
 
 CUDA_VISIBLE_DEVICES=0 python train.py \
 -l logdir \
--o ../runs/outdir_embeds_by_resemblyzer_23jul2020 \
--c ../runs/outdir_embeds_by_resemblyzer_23jul2020/checkpoint_51000 \
+-o ../runs/outdir_perfile_embeds_by_resemblyzer_24jul2020 \
 --n_gpus=1 \
 --hparams=speaker_adversial_loss_w=20.,\
 ce_loss=False,\

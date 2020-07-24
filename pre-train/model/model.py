@@ -6,7 +6,11 @@ from .utils import to_gpu
 from .decoder import Decoder
 from .layers import SpeakerClassifier, SpeakerEncoder, AudioSeq2seq, TextEncoder,  PostNet, MergeNet
 
-from reader.symbols import spkr_id_to_spkr_embed # ADDED BY KNURPSBRAM
+# from reader.symbols import spkr_id_to_spkr_embed # ADDED BY KNURPSBRAM
+
+# ADDED BY KNURPSBRAM
+import resemblyzer
+speaker_embedder = resemblyzer.VoiceEncoder()
 
 class Parrot(nn.Module):
     def __init__(self, hparams):
@@ -31,7 +35,6 @@ class Parrot(nn.Module):
 
         # change by KnurpsBram: use a pretrained resemblyzer embedder
         # self.speaker_encoder = SpeakerEncoder(hparams)
-        self.spkr_id_to_spkr_embed = spkr_id_to_spkr_embed
 
         self.speaker_classifier = SpeakerClassifier(hparams)
 
@@ -55,7 +58,9 @@ class Parrot(nn.Module):
 
     def parse_batch(self, batch):
         text_input_padded, mel_padded, spc_padded, speaker_id, \
-                    text_lengths, mel_lengths, stop_token_padded = batch
+                    text_lengths, mel_lengths, stop_token_padded, \
+                    pathlist \
+                     = batch # pathlist ADDED BY KNURPSBRAM
 
         text_input_padded = to_gpu(text_input_padded).long()
         mel_padded = to_gpu(mel_padded).float()
@@ -66,8 +71,20 @@ class Parrot(nn.Module):
         stop_token_padded = to_gpu(stop_token_padded).float()
 
         # ADDED BY KNURPSBRAM
-        speaker_embedding = torch.cat([self.spkr_id_to_spkr_embed[id][None, :] for id in speaker_id.data.cpu().numpy()], dim=0)
-        speaker_embedding = to_gpu(speaker_embedding).float()
+        # embeds = []
+        # for x in batch:
+        #     path = x[4]
+        #     uttr = resemblyzer.preprocess_wav(path)
+        #     # uttr = to_gpu(torch.FloatTensor(uttr))
+        #     embeds.append(speaker_embedder.embed_utterance(uttr)[None, :])
+        # speaker_embedding = torch.cat(embeds, dim=0)
+        embeds = []
+        for path in pathlist:
+            uttr = resemblyzer.preprocess_wav(path)
+            embed = torch.FloatTensor(speaker_embedder.embed_utterance(uttr)[None, :])
+            embeds.append(embed)
+        speaker_embedding = to_gpu(torch.cat(embeds, dim=0))
+        # END ADDED BY KNURPSBRAM
 
         # return ((text_input_padded, mel_padded, text_lengths, mel_lengths),
         #         (text_input_padded, mel_padded, spc_padded,  speaker_id, stop_token_padded))
