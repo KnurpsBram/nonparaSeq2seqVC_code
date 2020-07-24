@@ -56,7 +56,9 @@ class TextMelIDLoader(torch.utils.data.Dataset):
         spec_path = path
         text_path = path.replace('wav48', 'txt').replace('.mel.npy', '.txt')
         mel_path = path
-        speaker_id = path.split('/')[-2]
+
+        # speaker_id = path.split('/')[-2] # -2 for vctk
+        speaker_id   = path.split('/')[-3] # -3 for librispeech
 
         return mel_path, spec_path, text_path, speaker_id
 

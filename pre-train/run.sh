@@ -13,4 +13,4 @@ ce_loss=False,\
 speaker_classifier_loss_w=0.1,\
 contrastive_loss_w=30.,\
 iters_per_checkpoint=10000,\
-batch_size=32
+batch_size=2
