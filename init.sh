@@ -11,7 +11,7 @@ cd pre-train/reader
 python extract_features.py ../../data/VCTK audio
 python extract_features.py ../../data/VCTK text
 cd ../../
-python create_dataset_lists.py
+python create_dataset_lists_vctk.py
 
 # Ready!
 

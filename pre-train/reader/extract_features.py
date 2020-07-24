@@ -38,27 +38,28 @@ def extract_mel_spec(filename):
     log_mel_spectrogram = np.log(np.clip(mel_spectrogram, a_min=1e-5, a_max=None)).astype(np.float32)
 
     print(filename)
-    np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".spec"), arr=log_spectrogram.T)
+    # np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".spec"), arr=log_spectrogram.T)
     np.save(file=filename.replace(".wav", ".spec").replace(".flac", ".mel"),  arr=log_mel_spectrogram.T)
-
 
 def extract_phonemes(filename):
     from phonemizer.phonemize import phonemize
     from phonemizer.backend import FestivalBackend
     from phonemizer.separator import Separator
 
-    with open(filename) as f:
-        text=f.read()
-        phones = phonemize(text,
-                           language='en-us',
-                           backend='festival',
-                           separator=Separator(phone=' ',
-                                               syllable='',
-                                               word='')
-        )
+    if not os.path.exists(filename.replace('.txt', ".phones")):
+        with open(filename) as f:
+            text=f.read()
+            phones = phonemize(text,
+                               language='en-us',
+                               backend='festival',
+                               separator=Separator(phone=' ',
+                                                   syllable='',
+                                                   word='')
+            )
 
-    with open(filename.replace(".txt", ".phones"), "w") as outfile:
-        print(phones, file=outfile)
+        print(filename)
+        with open(filename.replace(".txt", ".phones"), "w") as outfile:
+            print(phones, file=outfile)
 
 def extract_dir(root, kind):
     if kind =="audio":
@@ -102,25 +103,25 @@ def estimate_mean_std(root, num=2000):
     counter_sp, counter_mel = 0, 0
     for dirpath, _, filenames in os.walk(root):
         for f in filenames:
-            if f.endswith('.spec.npy') and counter_sp<num:
-                path = os.path.join(dirpath, f)
-                specs.append(np.load(path))
-                counter_sp += 1
+            # if f.endswith('.spec.npy') and counter_sp<num:
+            #     path = os.path.join(dirpath, f)
+            #     specs.append(np.load(path))
+            #     counter_sp += 1
             if f.endswith('.mel.npy') and counter_mel<num:
                 path = os.path.join(dirpath, f)
                 mels.append(np.load(path))
                 counter_mel += 1
 
-    specs = np.vstack(specs)
+    # specs = np.vstack(specs)
     mels = np.vstack(mels)
 
     mel_mean = np.mean(mels,axis=0)
     mel_std = np.std(mels, axis=0)
-    spec_mean = np.mean(specs, axis=0)
-    spec_std = np.std(specs, axis=0)
+    # spec_mean = np.mean(specs, axis=0)
+    # spec_std = np.std(specs, axis=0)
 
-    np.save(os.path.join(root,"spec_mean_std.npy"),
-        [spec_mean, spec_std])
+    # np.save(os.path.join(root,"spec_mean_std.npy"),
+    #     [spec_mean, spec_std])
     np.save(os.path.join(root,"mel_mean_std.npy"),
         [mel_mean, mel_std])
 

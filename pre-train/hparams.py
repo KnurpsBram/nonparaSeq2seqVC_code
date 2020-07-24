@@ -20,10 +20,14 @@ def create_hparams(hparams_string=None, verbose=False):
         ################################
         # Data Parameters              #
         ################################
-        training_list='../data/VCTK/vctk_train.list',
-        validation_list='../data/VCTK/vctk_eval.list',
-        test_list='../data/VCTK/vctk_test.list',
-        mel_mean_std='../data/VCTK/mel_mean_std.npy',
+        # training_list='../data/VCTK/vctk_train.list',
+        # validation_list='../data/VCTK/vctk_eval.list',
+        # test_list='../data/VCTK/vctk_test.list',
+        # mel_mean_std='../data/VCTK/mel_mean_std.npy',
+        training_list='../data/LibriSpeech/librispeech_train.list',
+        validation_list='../data/LibriSpeech/librispeech_eval.list',
+        test_list='../data/LibriSpeech/librispeech_test.list',
+        mel_mean_std='../data/LibriSpeech/mel_mean_std.npy',
 
         ################################
         # Data Parameters              #

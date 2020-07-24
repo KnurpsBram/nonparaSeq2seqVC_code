@@ -42,14 +42,20 @@ class TextMelIDLoader(torch.utils.data.Dataset):
 
         self.file_path_list = file_path_list
         self.mel_mean_std = np.float32(np.load(mean_std_file))
-        self.spc_mean_std = np.float32(np.load(mean_std_file.replace('mel', 'spec')))
+        # self.spc_mean_std = np.float32(np.load(mean_std_file.replace('mel', 'spec')))
 
     def get_path_id(self, path):
         # Custom this function to obtain paths and speaker id
         # Deduce filenames
+
+        # spec_path = path
+        # text_path = path.replace('wav48', 'txt').replace('.spec.npy', '.txt')
+        # mel_path = path.replace('spec', 'mel')
+        # speaker_id = path.split('/')[-2]
+
         spec_path = path
-        text_path = path.replace('wav48', 'txt').replace('.spec.npy', '.txt')
-        mel_path = path.replace('spec', 'mel')
+        text_path = path.replace('wav48', 'txt').replace('.mel.npy', '.txt')
+        mel_path = path
         speaker_id = path.split('/')[-2]
 
         return mel_path, spec_path, text_path, speaker_id
@@ -73,10 +79,15 @@ class TextMelIDLoader(torch.utils.data.Dataset):
         # Load data from disk
         text_input = self.get_text(text_path)
         mel = np.load(mel_path)
-        spc = np.load(spec_path)
+
+        # CHANGE BY KNURPSBRAM don't use spec because you don't need them and they require much storage space
+        # spc = np.load(spec_path)
+        spc = np.zeros_like(mel) # DUMMY
+
         # Normalize audio
         mel = (mel - self.mel_mean_std[0])/ self.mel_mean_std[1]
-        spc = (spc - self.spc_mean_std[0]) / self.spc_mean_std[1]
+        # spc = (spc - self.spc_mean_std[0]) / self.spc_mean_std[1]
+
         # Format for pytorch
         text_input = torch.LongTensor(text_input)
         mel = torch.from_numpy(np.transpose(mel))
@@ -84,7 +95,7 @@ class TextMelIDLoader(torch.utils.data.Dataset):
         speaker_id = torch.LongTensor([sp2id[speaker_id]])
 
         # return (text_input, mel, spc, speaker_id)
-        return (text_input, mel, spc, speaker_id, path.replace('.spec.npy', '.flac')) # added by knurpsbram
+        return (text_input, mel, spc, speaker_id, path.replace('.mel.npy', '.flac')) # added by knurpsbram
 
     def get_text(self, text_path):
         '''
